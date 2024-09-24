@@ -24,7 +24,13 @@ public class Problem1 {
         //hint: use the arr variable; don't diretly use the a1-a4 variables
         // Goal: output only add *values* of each passed array
         //TODO add/edit code here
-        
+        // el286
+        // 9/23/24
+        for(int num : arr){
+            if((num%2) == 1){
+                System.out.print(num + ", ");
+            }
+        }
         //end add/edit section
         System.out.println();
         System.out.println("End process");
