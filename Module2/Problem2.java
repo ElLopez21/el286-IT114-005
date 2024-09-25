@@ -26,6 +26,8 @@ public class Problem2 {
         // Goal 1: Sum all the values inside the passed in array
         // Goal 2: Ensure the resulting total is represented in currency format (without the $) (i.e., two decimal places always present)
         //TODO add/edit code here
+        // el286
+        // 9/24/24
         for(double num : arr){
             total+=num;
         }
