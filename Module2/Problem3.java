@@ -28,6 +28,21 @@ public class Problem3 {
         //set the result to the proper index of the output array and maintain the original data type
         //hint: don't forget to handle the data types properly, the result datatype should be the same as the original datatype
         
+        // el286
+        // 9/24/2024
+        int index = 0;
+        for(T num : arr){
+            if(num instanceof Integer){
+                output[index] = Math.abs((Integer) num); 
+            } else if(num instanceof Double){
+                output[index] = Math.abs((Double) num); 
+            }else if(num instanceof String){
+                int intValue = Integer.parseInt((String) num);
+                output[index] = String.valueOf(Math.abs(intValue));
+            }
+            index++;
+        }
+
         //end edit section
 
         StringBuilder sb = new StringBuilder();
