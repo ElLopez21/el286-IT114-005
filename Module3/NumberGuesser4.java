@@ -132,12 +132,58 @@ public class NumberGuesser4 {
         } else {
             System.out.println("That's wrong");
             strikes++;
-            if (strikes >= maxStrikes) {
+            // if (strikes >= maxStrikes) {
+            //     lose();
+            //     pickNewRandom = true;
+            // }
+
+            // el286
+            // 10/04/24
+            if (strikes < maxStrikes){
+                int difference = Math.abs(number - guess);
+
+                if(difference >= 10){
+                    System.out.println("You're Cold!");
+                } else if(4 <= difference && difference< 10){
+                    System.out.println("You're Warm!");
+                } else if(1 <= difference && difference< 4){
+                    System.out.println("You're Hot!");
+                }
+            } else{
                 lose();
                 pickNewRandom = true;
             }
         }
         saveState();
+    }
+
+    // el286
+    // 10/4/24
+    private void chooseDifficulty(){
+        Scanner input = new Scanner(System.in);
+        System.out.println("Choose Your Difficulty: ");
+        System.out.println("1: Easy(10 strikes)");
+        System.out.println("2: Medium(5 strikes)");
+        System.out.println("3: Hard(3 strikes)");
+
+        String difficulty = input.nextLine();
+        
+        switch (difficulty) {
+            case "1":
+                maxStrikes = 10;
+                break;
+            case "2":
+                maxStrikes = 5;
+                break;
+            case "3":
+                maxStrikes = 3;
+                break;
+            default:
+                System.out.println("Difficulty not valid.");
+                maxStrikes = 5; 
+                break;
+        }
+        System.out.println("Difficulty set to " + difficulty + ". Maximum Strikes: " + maxStrikes);
     }
 
     private int strToNum(String message) {
@@ -156,6 +202,9 @@ public class NumberGuesser4 {
         try (Scanner input = new Scanner(System.in);) {
             System.out.println("Welcome to NumberGuesser4.0");
             System.out.println("To exit, type the word 'quit'.");
+            // el286
+            // 10/04/24
+            chooseDifficulty();
             loadState();
             do {
                 if (pickNewRandom) {
