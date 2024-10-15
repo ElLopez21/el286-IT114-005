@@ -4,6 +4,11 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
+// el286
+// 10-13-24
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.Random;
 
 public class Server {
     private int port = 3000;
@@ -121,7 +126,62 @@ public class Server {
             return true;
         }
         // add more "else if" as needed
+
+        // el286
+        // 10-13-24
+        String[] partOfMessage = message.split(" ", 2);
+        String messageAssigned = partOfMessage[0];
+
+        switch (messageAssigned) {
+            case "/flip":
+                double coin = Math.random();
+                if(coin > 0.5){
+                    System.out.println(String.format("User[%s]", sender.getClientId()) + " flipped a coin and got Heads");
+                }else{
+                    System.out.println(String.format("User[%s]", sender.getClientId()) + " flipped a coin and got Tails");
+                }
+                break;
+            case "/roll":
+                if(1 < partOfMessage.length){
+                    System.out.print(String.format("User[%s]", sender.getClientId()) + " rolled " + partOfMessage[1] + " and got ");
+                    diceRoller(partOfMessage[1]);
+                }else{
+                    System.out.println("Invalid roll command. Try /roll #d#");
+                }
+                break;
+            default:
+                break;
+        }
         return false;
+    }
+
+    // el286
+    // 10-13-24
+    private static void diceRoller(String partOfDice){
+        Pattern dicePattern = Pattern.compile("(\\d+)d(\\d+)");
+        Matcher diceMatcher = dicePattern.matcher(partOfDice.trim());
+
+        if(!diceMatcher.matches()){
+            System.out.println("Invalid /roll format");
+            return;
+        }
+
+        int diceNumber = Integer.parseInt(diceMatcher.group(1));
+        int diceSides = Integer.parseInt(diceMatcher.group(2));
+
+        if(diceNumber <= 0 || diceNumber <= 0){
+            System.out.println("Numbers must be positive.");
+        }
+
+        Random random = new Random();
+        int[] rollTotal = new int[diceNumber];
+        for(int i = 0; i < diceNumber; i++){
+            rollTotal[i] = random.nextInt(diceSides)+1;
+        }
+        for(int roll: rollTotal){
+            System.out.print(roll + ", ");
+        }
+
     }
 
     public static void main(String[] args) {
