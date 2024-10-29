@@ -21,6 +21,8 @@ public enum Server {
         }));
     }
 
+    // el286
+    // 10/27/24
     private void start(int port) {
         this.port = port;
         // server listening
@@ -50,6 +52,9 @@ public enum Server {
     /**
      * Gracefully disconnect clients
      */
+
+    // el286
+    // 10/27/24
     private void shutdown() {
         try {
             //chose removeIf over forEach to avoid potential ConcurrentModificationException
@@ -86,6 +91,9 @@ public enum Server {
      * @param name Unique name of the room
      * @return true if it was created and false if it wasn't
      */
+
+     // el286
+     // 10/27/24
     protected boolean createRoom(String name) {
         final String nameCheck = name.toLowerCase();
         if (rooms.containsKey(nameCheck)) {

@@ -63,6 +63,9 @@ public enum Client {
      * @param port
      * @return true if connection was successful
      */
+
+    // el286
+    // 10/27/24
     private boolean connect(String address, int port) {
         try {
             server = new Socket(address, port);
@@ -97,6 +100,9 @@ public enum Client {
      * @param text
      * @return true if the text is a valid connection command
      */
+
+    // el286
+    // 10/27/24
     private boolean isConnection(String text) {
         Matcher ipMatcher = ipAddressPattern.matcher(text);
         Matcher localhostMatcher = localhostPattern.matcher(text);
@@ -112,6 +118,9 @@ public enum Client {
      * @param text
      * @return true if the text was a command or triggered a command
      */
+
+    // el286
+    // 10/27/24
     private boolean processClientCommand(String text) {
         if (isConnection(text)) {
             if (myData.getClientName() == null || myData.getClientName().length() == 0) {
@@ -140,6 +149,9 @@ public enum Client {
         } else { // logic previously from Room.java
             // decided to make this as separate block to separate the core client-side items
             // vs the ones that generally are used after connection and that send requests
+
+            // el286
+            // 10/27/24
             if (text.startsWith(COMMAND_CHARACTER)) {
                 boolean wasCommand = false;
                 String fullCommand = text.replace(COMMAND_CHARACTER, "");
@@ -211,6 +223,9 @@ public enum Client {
      * 
      * @param message
      */
+
+    // el286
+    // 10/27/24
     private void sendMessage(String message) {
         Payload p = new Payload();
         p.setPayloadType(PayloadType.MESSAGE);
@@ -236,6 +251,9 @@ public enum Client {
      * 
      * @param p
      */
+
+    // el286
+    // 10/27/24
     private void send(Payload p) {
         try {
             out.writeObject(p);
@@ -260,6 +278,9 @@ public enum Client {
     /**
      * Listens for messages from the server
      */
+
+    // el286
+    // 10/27/24
     private void listenToServer() {
         try {
             while (isRunning && isConnected()) {
@@ -289,6 +310,9 @@ public enum Client {
     /**
      * Listens for keyboard input from the user
      */
+
+    // el286
+    // 10/27/24
     private void listenToInput() {
         try (Scanner si = new Scanner(System.in)) {
             System.out.println("Waiting for input"); // moved here to avoid console spam
@@ -313,6 +337,9 @@ public enum Client {
     /**
      * Closes the client connection and associated resources
      */
+
+    // el286
+    // 10/27/24
     private void close() {
         isRunning = false;
         closeServerConnection();
@@ -323,6 +350,9 @@ public enum Client {
     /**
      * Closes the server connection and associated resources
      */
+
+    // el286
+    // 10/27/24
     private void closeServerConnection() {
         myData.reset();
         knownClients.clear();
@@ -353,6 +383,8 @@ public enum Client {
         }
     }
 
+    // el286
+    // 10/27/24
     public static void main(String[] args) {
         Client client = Client.INSTANCE;
         try {
@@ -368,6 +400,9 @@ public enum Client {
      * 
      * @param payload
      */
+
+    // el286
+    // 10/27/24
     private void processPayload(Payload payload) {
         try {
             System.out.println("Received Payload: " + payload);

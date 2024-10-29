@@ -206,6 +206,9 @@ public class Room implements AutoCloseable{
     // end send data to client(s)
 
     // receive data from ServerThread
+
+    // el286
+    // 10/27/24
     protected void handleCreateRoom(ServerThread sender, String room) {
         if (Server.INSTANCE.createRoom(room)) {
             Server.INSTANCE.joinRoom(room, sender);
