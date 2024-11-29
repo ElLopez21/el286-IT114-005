@@ -4,6 +4,7 @@
 ./Common/LoggerUtil.java
 ./Common/Payload.java
 ./Common/PayloadType.java
+./Common/RollPayload.java
 ./Common/RoomResultsPayload.java
 ./Common/TextFX.java
 ./Server/BaseServerThread.java

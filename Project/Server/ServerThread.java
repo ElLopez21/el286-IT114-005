@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import Project.Common.PayloadType;
+import Project.Common.RollPayload;
 import Project.Common.RoomResultsPayload;
 import Project.Common.Payload;
 
@@ -114,6 +115,23 @@ public class ServerThread extends BaseServerThread {
                     break;
                 case DISCONNECT:
                     currentRoom.disconnect(this);
+                    break;
+                // el286
+                // 11/27/24
+                case ROLL:
+                    if(payload instanceof RollPayload){
+                        RollPayload rollPayload = (RollPayload) payload;
+                        if(currentRoom != null){
+                            currentRoom.handleRollCommand(this, rollPayload.getRollInput());
+                        }else {
+                            sendMessage("Join room to do roll command.");
+                        }
+                    }
+                    break;
+                // el286
+                // 11/27/24
+                case FLIP:
+                    currentRoom.handleFlipCommand(this);
                     break;
                 default:
                     break;

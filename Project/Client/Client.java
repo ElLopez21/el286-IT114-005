@@ -16,6 +16,7 @@ import Project.Common.ConnectionPayload;
 import Project.Common.LoggerUtil;
 import Project.Common.Payload;
 import Project.Common.PayloadType;
+import Project.Common.RollPayload;
 import Project.Common.RoomResultsPayload;
 import Project.Common.TextFX;
 import Project.Common.TextFX.Color;
@@ -55,6 +56,10 @@ public enum Client {
     private final String LOGOFF = "logoff";
     private final String LOGOUT = "logout";
     private final String SINGLE_SPACE = " ";
+    // el286
+    // 11/27/24
+    private final String ROLL = "roll";
+    private final String FLIP = "flip";
 
     // needs to be private now that the enum logic is handling this
     private Client() {
@@ -176,6 +181,32 @@ public enum Client {
                         break;
                     case LIST_ROOMS:
                         sendListRooms(commandValue);
+                        wasCommand = true;
+                        break;
+                    // el286
+                    // 11/27/24
+                    case ROLL:
+                        if (!commandValue.isEmpty()){
+                            RollPayload rollPayload = new RollPayload();
+                            rollPayload.setRollInput(commandValue);
+                            send(rollPayload);
+                            LoggerUtil.INSTANCE.info(String.format("Rolled %s", commandValue));
+                        } else {
+                            LoggerUtil.INSTANCE.warning("Use commands /roll");
+                        }
+                        wasCommand = true;
+                        break;
+                    // el286
+                    // 11/27/24
+                    case FLIP:
+                        if(commandValue.isEmpty()){
+                            Payload flipPayload = new Payload();
+                            flipPayload.setPayloadType(PayloadType.FLIP);
+                            send(flipPayload);
+                            LoggerUtil.INSTANCE.info("Flipped a coin");
+                        }else{
+                            LoggerUtil.INSTANCE.warning("Use /flip command");
+                        }
                         wasCommand = true;
                         break;
                     // Note: these are to disconnect, they're not for changing rooms
