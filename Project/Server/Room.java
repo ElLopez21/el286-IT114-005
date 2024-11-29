@@ -4,6 +4,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import Project.Common.LoggerUtil;
 
+import java.util.Random;
+
 public class Room implements AutoCloseable{
     private String name;// unique name of the Room
     protected volatile boolean isRunning = false;
@@ -192,6 +194,10 @@ public class Room implements AutoCloseable{
             return;
         }
 
+        // el286
+        // 11/27/24
+        String messageFormat = messageFormated(message);
+
         // Note: any desired changes to the message must be done before this section
         long senderId = sender == null ? ServerThread.DEFAULT_CLIENT_ID : sender.getClientId();
 
@@ -199,15 +205,33 @@ public class Room implements AutoCloseable{
         // to be sent
         // Note: this uses a lambda expression for each item in the values() collection,
         // it's one way we can safely remove items during iteration
-        info(String.format("sending message to %s recipients: %s", clientsInRoom.size(), message));
+        info(String.format("sending message to %s recipients: %s", clientsInRoom.size(), messageFormat));
         clientsInRoom.values().removeIf(client -> {
-            boolean failedToSend = !client.sendMessage(senderId, message);
+            boolean failedToSend = !client.sendMessage(senderId, messageFormat);
             if (failedToSend) {
                 info(String.format("Removing disconnected client[%s] from list", client.getClientId()));
                 disconnect(client);
             }
             return failedToSend;
         });
+    }
+
+    // el286
+    // 11/27/24
+    private String messageFormated(String message){
+        message = message.replaceAll("\\*\\*(.*?)\\*\\*", "<b>$1</b>");
+
+        message = message.replaceAll("\\*(.*?)\\*", "<i>$1</i>");
+
+        message = message.replaceAll("_(.*?)_", "<u>$1</u>");
+
+        message = message.replaceAll("#r (.*?) r#", "<red>$1</red>");
+
+        message = message.replaceAll("#b (.*?) b#", "<blue>$1</blue>");
+
+        message = message.replaceAll("#g (.*?) g#", "<green>$1</green>");
+
+        return message;
     }
     // end send data to client(s)
 
@@ -235,5 +259,51 @@ public class Room implements AutoCloseable{
         disconnect(sender);
     }
 
+    // el286
+    // 11/27/24
+    protected void handleRollCommand(ServerThread sender, String rollCommand){
+        try{
+            if(rollCommand.contains("d")){
+                String[] parts = rollCommand.split("d");
+                int rolls = Integer.parseInt(parts[0]);
+                int sides = Integer.parseInt(parts[1]);
+                if(rolls <= 0 || sides <= 0){
+                    sender.sendMessage("Roll command is invalid");
+                    return;
+                }
+                Random random = new Random();
+                String rollTotal = "";
+                for (int i = 0; i < rolls; i++) {
+                    rollTotal += random.nextInt(sides) + 1;
+                    if (i < rolls - 1) {
+                        rollTotal += ", ";
+                    }
+                }
+                sendMessage(sender, String.format("rolled %s and got %s", rollCommand, rollTotal));
+            } else {
+                int max = Integer.parseInt(rollCommand);
+                if(max <= 0){
+                    sender.sendMessage("Roll command is invalid");
+                    return;
+                }
+                int result = new Random().nextInt(max) + 1;
+                sendMessage(sender, String.format("rolled %s and got %d", rollCommand, result)); 
+            }
+        } catch(NumberFormatException e){
+            sender.sendMessage("Invalid roll");
+        }
+    }
+
+    // el286
+    // 11/27/24
+    protected void handleFlipCommand(ServerThread sender){
+        String[] results = {
+            "heads",
+            "tails"
+        };
+
+        String result = results[(int) (Math.random()*results.length)];
+        sendMessage(sender, String.format("flipped a coin and got %s", result));
+    }
     // end receive data from ServerThread
 }
