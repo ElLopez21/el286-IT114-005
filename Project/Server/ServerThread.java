@@ -1,8 +1,14 @@
 package Project.Server;
 
 import java.net.Socket;
+// el286
+// 12/01/24
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+// el286
+// 12/01/24
+import java.util.Set;
 import java.util.function.Consumer;
 
 import Project.Common.PayloadType;
@@ -24,6 +30,9 @@ public class ServerThread extends BaseServerThread {
     private String clientName;
     private Consumer<ServerThread> onInitializationComplete; // callback to inform when this object is ready
 
+    // el286
+    // 12/01/24
+    private Set<String> mutedClients = new HashSet<>();
     /**
      * Wraps the Socket connection and takes a Server reference and a callback
      * 
@@ -104,6 +113,18 @@ public class ServerThread extends BaseServerThread {
                 case MESSAGE:
                     currentRoom.sendMessage(this, payload.getMessage());
                     break;
+                // el286
+                // 12/01/24
+                case PRIVATE_MESSAGE:
+                    long targetClientId = payload.getClientId(); 
+                    String privateMessage = payload.getMessage();
+                    info("Private message request: Client ID: " + targetClientId + ", Message: '" + privateMessage + "'");
+                    if (privateMessage == null || privateMessage.trim().isEmpty()) {
+                        sendMessage("Invalid private message. Message content cannot be empty.");
+                        return;
+                    }
+                    currentRoom.handlePrivateMessageById(this, targetClientId, privateMessage);
+                    break;    
                 case ROOM_CREATE:
                     currentRoom.handleCreateRoom(this, payload.getMessage());
                     break;
@@ -133,6 +154,18 @@ public class ServerThread extends BaseServerThread {
                 case FLIP:
                     currentRoom.handleFlipCommand(this);
                     break;
+                // el286
+                // 12/01/24
+                case MUTE:
+                    long muteTargetId = payload.getClientId();
+                    currentRoom.handleMute(this, muteTargetId);
+                    break;
+                // el286
+                // 12/01/24
+                case UNMUTE:
+                    long unmuteTargetId = payload.getClientId();
+                    currentRoom.handleUnmute(this, unmuteTargetId);
+                    break;                    
                 default:
                     break;
             }
@@ -140,6 +173,29 @@ public class ServerThread extends BaseServerThread {
             LoggerUtil.INSTANCE.severe("Could not process Payload: " + payload,e);
         
         }
+    } 
+    // el286
+    // 12/01/24
+    public boolean addMutedClient(String clientName) {
+        boolean wasAdded = mutedClients.add(clientName); 
+        if (wasAdded) {
+            info("Client '" + clientName + "' muted.");
+        }
+        return wasAdded;
+    }
+    // el286
+    // 12/01/24
+    public boolean removeMutedClient(String clientName) {
+        boolean wasRemoved = mutedClients.remove(clientName); 
+        if (wasRemoved) {
+            info("Client '" + clientName + "' unmuted.");
+        }
+        return wasRemoved;
+    }
+    // el286
+    // 12/01/24
+    public boolean isMuted(String clientName) {
+        return mutedClients.contains(clientName);
     }
 
     // send methods to pass data back to the Client
