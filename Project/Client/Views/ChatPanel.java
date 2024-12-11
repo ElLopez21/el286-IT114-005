@@ -201,7 +201,7 @@ public class ChatPanel extends JPanel {
      */
     public void addText(String text) {
         SwingUtilities.invokeLater(() -> {
-            JEditorPane textContainer = new JEditorPane("text/plain", text);
+            JEditorPane textContainer = new JEditorPane("text/html", text);
             textContainer.setEditable(false);
             textContainer.setBorder(BorderFactory.createEmptyBorder());
 

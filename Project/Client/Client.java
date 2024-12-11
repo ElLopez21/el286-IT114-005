@@ -66,6 +66,11 @@ public enum Client {
     // 11/27/24
     private final String ROLL = "roll";
     private final String FLIP = "flip";
+    // el286
+    // 12/1/24
+    private final String PRIVATE = "@";
+    private final String MUTE = "mute";
+    private final String UNMUTE = "unmute";
 
     // callback that updates the UI
     private static IClientEvents events;
@@ -250,6 +255,42 @@ public enum Client {
                         }
                         wasCommand = true;
                         break;
+                    // el286
+                    // 12/01/24
+                    case MUTE:
+                        
+                    case UNMUTE:
+                        if (commandValue.isEmpty()) {
+                            LoggerUtil.INSTANCE.warning("Use /mute user or /unmute user command");
+                        } else {
+                            String targetUsername = commandValue.trim();
+
+                            Long targetClientId = null;
+                            for (ClientData client : knownClients.values()) {
+                                if (client.getClientName().equalsIgnoreCase(targetUsername)) {
+                                    targetClientId = client.getClientId();
+                                    break;
+                                }
+                            }
+                        
+                            if (targetClientId == null) {
+                                LoggerUtil.INSTANCE.warning("User '" + targetUsername + "' not found.");
+                            } else {
+                                Payload mutePayload = new Payload();
+                                mutePayload.setPayloadType(command.equals(MUTE) ? PayloadType.MUTE : PayloadType.UNMUTE);
+                                mutePayload.setClientId(targetClientId);
+                            
+                                try {
+                                    send(mutePayload);
+                                    LoggerUtil.INSTANCE.info((command.equals(MUTE) ? "Muted" : "Unmuted") + " user: " + targetUsername);
+                                } catch (IOException e) {
+                                    LoggerUtil.INSTANCE.severe("Failed to send " + command + " command", e);
+                                }
+                            }
+                        }
+                        wasCommand = true;
+                        break;
+
                     // Note: these are to disconnect, they're not for changing rooms
                     case DISCONNECT:
                     case LOGOFF:
@@ -259,6 +300,51 @@ public enum Client {
                         break;
                 }
                 return wasCommand;
+                // el286
+                // 12/01/24
+            }else if(text.startsWith(PRIVATE)){
+                text = text.trim();
+
+                if (!text.startsWith(PRIVATE)) {
+                    LoggerUtil.INSTANCE.warning("Invalid format. Use @username message");
+                    return true;
+                }
+            
+                String[] parts = text.substring(1).split(" ", 2);
+                if (parts.length < 2 || parts[0].isEmpty() || parts[1].isEmpty()) {
+                    LoggerUtil.INSTANCE.warning("Invalid format. Use @username message");
+                    return true;
+                }
+            
+                String targetUsername = parts[0].trim();
+                String privateMessage = parts[1].trim();
+            
+                Long targetClientId = null;
+                    for (ClientData client : knownClients.values()) {
+                        if (client.getClientName().equalsIgnoreCase(targetUsername)) {
+                            targetClientId = client.getClientId();
+                            break;
+                        }
+                    }
+                if (targetClientId == null) {
+                    LoggerUtil.INSTANCE.warning("User '" + targetUsername + "' not found.");
+                    return true; 
+                }
+            
+                Payload privatePayload = new Payload();
+                privatePayload.setPayloadType(PayloadType.PRIVATE_MESSAGE);
+                privatePayload.setClientId(targetClientId);
+                privatePayload.setMessage(privateMessage);
+            
+                LoggerUtil.INSTANCE.info("Sending private message payload: " +"Target Id: " + targetClientId + ", Message: " + privateMessage);
+            
+                try {
+                    send(privatePayload);
+                    LoggerUtil.INSTANCE.info("Private message sent to " + targetUsername);
+                } catch (IOException e) {
+                    LoggerUtil.INSTANCE.severe("Failed to send private message", e);
+                }
+                return true; 
             }
         }
         return false;

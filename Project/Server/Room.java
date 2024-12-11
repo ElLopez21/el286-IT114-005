@@ -207,6 +207,12 @@ public class Room implements AutoCloseable{
         // it's one way we can safely remove items during iteration
         info(String.format("sending message to %s recipients: %s", clientsInRoom.size(), messageFormat));
         clientsInRoom.values().removeIf(client -> {
+            // el286
+            // 12/01/24
+            if (client.isMuted(sender.getClientName())) {
+                info(String.format("Message from %s skipped for %s due to mute.", sender.getClientName(), client.getClientName()));
+                return false;
+            }
             boolean failedToSend = !client.sendMessage(senderId, messageFormat);
             if (failedToSend) {
                 info(String.format("Removing disconnected client[%s] from list", client.getClientId()));
@@ -225,11 +231,11 @@ public class Room implements AutoCloseable{
 
         message = message.replaceAll("_(.*?)_", "<u>$1</u>");
 
-        message = message.replaceAll("#r (.*?) r#", "<red>$1</red>");
+        message = message.replaceAll("#r (.*?) r#", "<span style='color:red;'>$1</span>");
 
-        message = message.replaceAll("#b (.*?) b#", "<blue>$1</blue>");
+        message = message.replaceAll("#b (.*?) b#", "<span style='color:blue;'>$1</span>");
 
-        message = message.replaceAll("#g (.*?) g#", "<green>$1</green>");
+        message = message.replaceAll("#g (.*?) g#", "<span style='color:green;'>$1</span>");
 
         return message;
     }
@@ -279,7 +285,9 @@ public class Room implements AutoCloseable{
                         rollTotal += ", ";
                     }
                 }
-                sendMessage(sender, String.format("rolled %s and got %s", rollCommand, rollTotal));
+                // el286
+                // 12/01/24
+                sendMessage(sender, String.format("<b><span style='color:blue;'>rolled %s and got %s</span></b>", rollCommand, rollTotal));
             } else {
                 int max = Integer.parseInt(rollCommand);
                 if(max <= 0){
@@ -287,7 +295,9 @@ public class Room implements AutoCloseable{
                     return;
                 }
                 int result = new Random().nextInt(max) + 1;
-                sendMessage(sender, String.format("rolled %s and got %d", rollCommand, result)); 
+                // el286
+                // 12/01/24
+                sendMessage(sender, String.format("<b><span style='color:blue;'>rolled %s and got %d</span></b>", rollCommand, result)); 
             }
         } catch(NumberFormatException e){
             sender.sendMessage("Invalid roll");
@@ -303,7 +313,85 @@ public class Room implements AutoCloseable{
         };
 
         String result = results[(int) (Math.random()*results.length)];
-        sendMessage(sender, String.format("flipped a coin and got %s", result));
+        // el286
+        // 12/01/24
+        sendMessage(sender, String.format("<i><span style='color:green;'>flipped a coin and got %s</span></b>", result));
+    }
+
+    // el286
+    // 12/01/24
+    protected synchronized void handlePrivateMessageById(ServerThread sender, long targetClientId, String message) {
+        if (!isRunning) { 
+            return;
+        }
+
+        ServerThread recipient = clientsInRoom.get(targetClientId);
+    
+        if (recipient == null) {
+            sendMessage(sender, String.format("User with ID '%d' not found in the room.", targetClientId));
+            return;
+        }
+
+        String formattedMessage = String.format("[Private from %s]: %s", sender.getClientName(), message);
+        String formattedMessage2 = String.format("[Private to %s]: %s", recipient.getClientName(), message);
+
+        info(String.format("Private message from %s to %s: %s", sender.getClientName(), recipient.getClientName(), message));
+
+        boolean recipientMessageFailed = !recipient.sendMessage(sender.getClientId(), formattedMessage);
+        if (recipientMessageFailed) {
+            info(String.format("Failed to send private message to %s (ID: %d)", recipient.getClientName(), targetClientId));
+            disconnect(recipient);
+        }
+
+        boolean senderMessageFailed = !sender.sendMessage(sender.getClientId(), formattedMessage2);
+        if (senderMessageFailed) {
+            info(String.format("Failed to confirm private message to sender %s (ID: %d)", sender.getClientName(), sender.getClientId()));
+            disconnect(sender);
+        }
+    }
+
+    // el286
+    // 12/01/24
+    protected synchronized void handleMute(ServerThread sender, long targetClientId) {
+        ServerThread targetClient = clientsInRoom.get(targetClientId);
+
+        if (targetClient == null) {
+            sendMessage(sender,String.format("User with ID '%d' not found in the room.", targetClientId));
+            return;
+        }
+        
+        String formattedMessage = String.format("[You muted %s]", targetClient.getClientName());
+
+        if (sender.addMutedClient(targetClient.getClientName())) {
+            boolean senderMessageFailed = !sender.sendMessage(sender.getClientId(), formattedMessage);
+            if (senderMessageFailed) {
+                info(String.format("Failed to mute %s", targetClient.getClientName()));
+            } else {
+                info(String.format("%s muted %s", sender.getClientName(), targetClient.getClientName()));
+            }   
+        }
+    }
+
+    // el286
+    // 12/01/24
+    protected synchronized void handleUnmute(ServerThread sender, long targetClientId) {
+        ServerThread targetClient = clientsInRoom.get(targetClientId);
+
+        if (targetClient == null) {
+            sendMessage(sender,String.format("User with ID '%d' not found in the room.", targetClientId));
+            return;
+        }
+
+        String formattedMessage = String.format("[You unmuted %s]", targetClient.getClientName());
+
+        if (sender.removeMutedClient(targetClient.getClientName())) {
+            boolean senderMessageFailed = !sender.sendMessage(sender.getClientId(), formattedMessage);
+            if (senderMessageFailed) {
+                info(String.format("Failed to unmute %s", targetClient.getClientName()));
+            } else {
+                info(String.format("%s unmuted %s", sender.getClientName(), targetClient.getClientName()));
+            }
+        }
     }
     // end receive data from ServerThread
 }

@@ -12,5 +12,10 @@ public enum PayloadType {
     // el286
     // 11/27/24
     ROLL,
-    FLIP;
+    FLIP,
+    // el286
+    // 12/1/24
+    PRIVATE_MESSAGE,
+    MUTE,
+    UNMUTE;
 }
